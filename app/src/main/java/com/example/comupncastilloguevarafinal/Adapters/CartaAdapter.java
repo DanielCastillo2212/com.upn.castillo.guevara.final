@@ -41,8 +41,9 @@ public class CartaAdapter extends RecyclerView.Adapter<CartaAdapter.CartaViewHol
         holder.tvPuntosAtaque.setText(String.valueOf(carta.getPuntosAtaque()));
         holder.tvPuntosDefensa.setText(String.valueOf(carta.getPuntosDefensa()));
 
-        // Cargar la imagen usando Picasso
-        Picasso.get().load(carta.getUrlImagen()).into(holder.ivImagen);
+        if (!carta.getImagen().isEmpty()) {
+            Picasso.get().load(carta.getImagen()).into(holder.ivImagen);
+        }
     }
 
     @Override

@@ -59,6 +59,8 @@ public class RegistrarCartaActivity extends AppCompatActivity implements Locatio
     public Double Latitude;
     public Double Longitude;
 
+    private String urlImagen;
+
     private LocationManager mLocationManager;
 
     private Uri selectedImageUri;
@@ -150,7 +152,8 @@ public class RegistrarCartaActivity extends AppCompatActivity implements Locatio
         uploadImageToApi(imageBase64);
 
 
-        final Carta carta = new Carta(nombre, puntosAtaque, puntosDefensa, tvurlimagen.getText().toString(), latitud, longitud, duelistaId);
+        final Carta carta = new Carta(nombre, puntosAtaque, puntosDefensa, urlImagen, latitud, longitud, duelistaId);
+        Log.d("URL", "URL de la imagen para pasar: " + urlImagen);
 
         AsyncTask.execute(new Runnable() {
             @Override
@@ -168,7 +171,7 @@ public class RegistrarCartaActivity extends AppCompatActivity implements Locatio
                         tvLongitud.setText("");
 
                         // Actualizar el campo urlImagen con la imageUrl
-                        tvurlimagen.setText("https://demo-upn.bit2bittest.com/" + tvurlimagen.getText().toString());
+                        //tvurlimagen.setText("https://demo-upn.bit2bittest.com/" + tvurlimagen.getText().toString());
                     }
                 });
             }
@@ -240,6 +243,9 @@ public class RegistrarCartaActivity extends AppCompatActivity implements Locatio
 
                     // Actualizar el campo urlImagen con la imageUrl
                     tvurlimagen.setText("https://demo-upn.bit2bittest.com/" + imageUrl);
+
+                    urlImagen = tvurlimagen.getText().toString();
+                    Log.d("URL", "URL de la imagen: " + urlImagen);
                 } else {
                     // Mostrar mensaje de error en caso de respuesta no exitosa o cuerpo nulo
                     Toast.makeText(RegistrarCartaActivity.this, "Error al cargar la imagen", Toast.LENGTH_SHORT).show();
