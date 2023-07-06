@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import com.example.comupncastilloguevarafinal.Adapters.DuelistaAdapter;
@@ -33,5 +34,16 @@ public class ListaDuelistasActivity extends AppCompatActivity {
         List<Duelista> duelistas = duelistaDao.getAllDuelistas();
         adapter = new DuelistaAdapter(this, duelistas);
         recyclerView.setAdapter(adapter);
+
+        adapter.setOnItemClickListener(new DuelistaAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(Duelista duelist) {
+                // Redirigir a la actividad de detalle de duelistas
+                Intent intent = new Intent(ListaDuelistasActivity.this, DetalleDuelistaActivity.class);
+                intent.putExtra("duelistaId", duelist.getId());
+                intent.putExtra("duelistaNombre", duelist.getNombre());
+                startActivity(intent);
+            }
+        });
     }
 }

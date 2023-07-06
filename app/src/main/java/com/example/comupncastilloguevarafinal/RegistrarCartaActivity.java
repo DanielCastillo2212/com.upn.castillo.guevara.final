@@ -58,7 +58,7 @@ public class RegistrarCartaActivity extends AppCompatActivity {
             return;
         }
 
-        Carta carta = new Carta(nombre, puntosAtaque, puntosDefensa, latitud, longitud);
+        Carta carta = new Carta(nombre, puntosAtaque, puntosDefensa, latitud, longitud, duelistaId);
         long cartaId = cartaDao.insertCarta(carta);
 
         Toast.makeText(this, "Carta registrada con ID: " + cartaId, Toast.LENGTH_SHORT).show();

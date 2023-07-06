@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center">
+
+    <Button
+        android:id="@+id/btn_registrar_duelista_menu"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:text="Registrar Duelista" />
+
+    <Button
+        android:id="@+id/btn_ver_duelistas_menu"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/btn_registrar_duelista_menu"
+        android:layout_marginTop="16dp"
+        android:text="Ver Duelistas" />
+
+</RelativeLayout>
