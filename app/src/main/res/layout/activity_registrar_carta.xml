@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".RegistrarCartaActivity">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nombre de la Carta"
+        android:textSize="18sp" />
+
+    <EditText
+        android:id="@+id/et_nombre"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Ingrese el nombre de la Carta" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Puntos de Ataque"
+        android:textSize="18sp" />
+
+    <EditText
+        android:id="@+id/et_puntos_ataque"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        android:hint="Ingrese los puntos de ataque" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Puntos de Defensa"
+        android:textSize="18sp" />
+
+    <EditText
+        android:id="@+id/et_puntos_defensa"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        android:hint="Ingrese los puntos de defensa" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Latitud"
+        android:textSize="18sp" />
+
+    <EditText
+        android:id="@+id/et_latitud"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="numberDecimal"
+        android:hint="Ingrese la latitud" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Longitud"
+        android:textSize="18sp" />
+
+    <EditText
+        android:id="@+id/et_longitud"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="numberDecimal"
+        android:hint="Ingrese la longitud" />
+
+    <Button
+        android:id="@+id/btn_registrar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Registrar" />
+
+</LinearLayout>
