@@ -2,6 +2,7 @@ package com.example.comupncastilloguevarafinal;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.content.Context;
@@ -49,6 +50,8 @@ public class RegistrarCartaActivity extends AppCompatActivity implements Locatio
     private Button btnRegistrar;
     private Button btnAgregarImagen;
 
+    private TextView tvurlimagen;
+
     private CartaDao cartaDao;
     private long duelistaId;
 
@@ -57,7 +60,10 @@ public class RegistrarCartaActivity extends AppCompatActivity implements Locatio
 
     private LocationManager mLocationManager;
 
+    private Uri selectedImageUri;
+
     private static final int REQUEST_IMAGE_PICK = 1;
+    private static final int REQUEST_GALLERY = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +77,8 @@ public class RegistrarCartaActivity extends AppCompatActivity implements Locatio
         tvLongitud = findViewById(R.id.tv_longitud);
         btnRegistrar = findViewById(R.id.btn_registrar);
         btnAgregarImagen = findViewById(R.id.btn_agregarimagen);
+        tvurlimagen = findViewById(R.id.tv_url_imagen);
+
 
         AppDatabase db = AppDatabase.getInstance(getApplicationContext());
         cartaDao = db.cartaDao();
@@ -126,12 +134,14 @@ public class RegistrarCartaActivity extends AppCompatActivity implements Locatio
         double latitud = Double.parseDouble(tvLatitud.getText().toString());
         double longitud = Double.parseDouble(tvLongitud.getText().toString());
 
+        String img = String.valueOf(tvurlimagen);
+
         if (nombre.isEmpty()) {
             Toast.makeText(this, "Ingrese un nombre de Carta", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        final Carta carta = new Carta(nombre, puntosAtaque, puntosDefensa, "", latitud, longitud, duelistaId);
+        final Carta carta = new Carta(nombre, puntosAtaque, puntosDefensa, img, latitud, longitud, duelistaId);
 
         AsyncTask.execute(new Runnable() {
             @Override
@@ -154,15 +164,15 @@ public class RegistrarCartaActivity extends AppCompatActivity implements Locatio
     }
 
     private void openImagePicker() {
-        Log.d("RegistroMovimiento", "Abriendo selector de imágenes");
+        Log.d("RegistroCarta", "Abriendo selector de imágenes");
         // Verificar si el permiso de almacenamiento está concedido
         if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
             // El permiso de almacenamiento está concedido, abrir la galería
             Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            startActivityForResult(galleryIntent, REQUEST_IMAGE_PICK);
+            startActivityForResult(galleryIntent, REQUEST_GALLERY);
         } else {
             // Solicitar permiso de almacenamiento si no está concedido
-            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_IMAGE_PICK);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_GALLERY);
         }
     }
 
@@ -179,21 +189,8 @@ public class RegistrarCartaActivity extends AppCompatActivity implements Locatio
 
             // Subir la imagen a la API
             uploadImageToApi(imageBase64);
-        } else if (requestCode == REQUEST_CAMERA && resultCode == RESULT_OK) {
-            // Obtener la imagen capturada por la cámara
-            Bundle extras = data.getExtras();
-            if (extras != null) {
-                Bitmap imageBitmap = (Bitmap) extras.get("data");
-                selectedImageUri = getImageUri(imageBitmap);
-                Toast.makeText(RegistrarCartaActivity.this, "Imagen agregada correctamente", Toast.LENGTH_SHORT).show();
-
-                // Obtener la imagen en base64
-                String imageBase64 = convertImageToBase64(selectedImageUri);
-
-                // Subir la imagen a la API
-                uploadImageToApi(imageBase64);
-            }
         }
+
     }
 
     private Uri getImageUri(Bitmap bitmap) {
@@ -235,7 +232,7 @@ public class RegistrarCartaActivity extends AppCompatActivity implements Locatio
                     String imageUrl = uploadResponse.getImageUrl();
 
                     // Actualizar el campo urlImagen con la imageUrl
-                    etUrlImagen.setText("https://demo-upn.bit2bittest.com/" + imageUrl);
+                    tvurlimagen.setText("https://demo-upn.bit2bittest.com/" + imageUrl);
                 } else {
                     // Mostrar mensaje de error en caso de respuesta no exitosa o cuerpo nulo
                     Toast.makeText(RegistrarCartaActivity.this, "Error al cargar la imagen", Toast.LENGTH_SHORT).show();
