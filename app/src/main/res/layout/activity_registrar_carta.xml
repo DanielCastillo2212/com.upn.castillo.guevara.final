@@ -51,8 +51,8 @@
         android:text="Latitud"
         android:textSize="18sp" />
 
-    <EditText
-        android:id="@+id/et_latitud"
+    <TextView
+        android:id="@+id/tv_latitud"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="numberDecimal"
@@ -64,8 +64,8 @@
         android:text="Longitud"
         android:textSize="18sp" />
 
-    <EditText
-        android:id="@+id/et_longitud"
+    <TextView
+        android:id="@+id/tv_longitud"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="numberDecimal"

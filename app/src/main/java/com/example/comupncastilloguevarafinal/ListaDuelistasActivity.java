@@ -14,6 +14,22 @@ import com.example.comupncastilloguevarafinal.Services.DuelistaDao;
 
 import java.util.List;
 
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import com.example.comupncastilloguevarafinal.DB.AppDatabase;
+import com.example.comupncastilloguevarafinal.Entities.Duelista;
+import com.example.comupncastilloguevarafinal.Services.DuelistaDao;
+
+import java.util.List;
+
 public class ListaDuelistasActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private DuelistaAdapter adapter;
@@ -31,19 +47,42 @@ public class ListaDuelistasActivity extends AppCompatActivity {
         AppDatabase db = AppDatabase.getInstance(getApplicationContext());
         duelistaDao = db.duelistaDao();
 
-        List<Duelista> duelistas = duelistaDao.getAllDuelistas();
-        adapter = new DuelistaAdapter(this, duelistas);
-        recyclerView.setAdapter(adapter);
+        // Cargar los Duelistas en un hilo separado
+        new LoadDuelistasTask().execute();
+    }
 
-        adapter.setOnItemClickListener(new DuelistaAdapter.OnItemClickListener() {
+    private void showDuelistas(List<Duelista> duelistas) {
+        adapter = new DuelistaAdapter(this, duelistas, new DuelistaAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(Duelista duelist) {
-                // Redirigir a la actividad de detalle de duelistas
-                Intent intent = new Intent(ListaDuelistasActivity.this, DetalleDuelistaActivity.class);
-                intent.putExtra("duelistaId", duelist.getId());
-                intent.putExtra("duelistaNombre", duelist.getNombre());
-                startActivity(intent);
+                // Manejar el evento de clic en el Duelista
+                openDetalleDuelistaActivity(duelist.getId(), duelist.getNombre());
             }
         });
+        recyclerView.setAdapter(adapter);
+    }
+
+    private void openDetalleDuelistaActivity(long duelistaId, String nombreDuelista) {
+        Intent intent = new Intent(ListaDuelistasActivity.this, DetalleDuelistaActivity.class);
+        intent.putExtra("duelistaId", duelistaId);
+        intent.putExtra("nombreDuelista", nombreDuelista);
+        startActivity(intent);
+    }
+
+    private class LoadDuelistasTask extends AsyncTask<Void, Void, List<Duelista>> {
+        @Override
+        protected List<Duelista> doInBackground(Void... voids) {
+            // Obtener los Duelistas en segundo plano
+            return duelistaDao.getAllDuelistas();
+        }
+
+        @Override
+        protected void onPostExecute(List<Duelista> duelistas) {
+            super.onPostExecute(duelistas);
+
+            // Mostrar los Duelistas en el RecyclerView
+            showDuelistas(duelistas);
+        }
     }
 }
+

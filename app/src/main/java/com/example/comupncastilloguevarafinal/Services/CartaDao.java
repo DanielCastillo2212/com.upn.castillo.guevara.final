@@ -24,4 +24,5 @@ public interface CartaDao {
 
     @Insert
     void insertCartas(List<Carta> cartas);
+    
 }

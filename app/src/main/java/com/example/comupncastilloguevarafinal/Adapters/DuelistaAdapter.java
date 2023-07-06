@@ -23,12 +23,9 @@ public class DuelistaAdapter extends RecyclerView.Adapter<DuelistaAdapter.ViewHo
         void onItemClick(Duelista duelist);
     }
 
-    public DuelistaAdapter(Context context, List<Duelista> duelistas) {
+    public DuelistaAdapter(Context context, List<Duelista> duelistas, OnItemClickListener listener) {
         this.context = context;
         this.duelistas = duelistas;
-    }
-
-    public void setOnItemClickListener(OnItemClickListener listener) {
         this.listener = listener;
     }
 
@@ -44,6 +41,7 @@ public class DuelistaAdapter extends RecyclerView.Adapter<DuelistaAdapter.ViewHo
         Duelista duelist = duelistas.get(position);
 
         // Configurar la vista del elemento de la lista con los datos del duelist
+        holder.tvNombre.setText(duelist.getNombre());
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -61,11 +59,11 @@ public class DuelistaAdapter extends RecyclerView.Adapter<DuelistaAdapter.ViewHo
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        // Declaración de vistas y elementos del elemento de la lista
+        public TextView tvNombre;
 
         public ViewHolder(View itemView) {
             super(itemView);
-            // Inicialización de vistas y elementos del elemento de la lista
+            tvNombre = itemView.findViewById(R.id.tv_nombre_duelista);
         }
     }
 }
