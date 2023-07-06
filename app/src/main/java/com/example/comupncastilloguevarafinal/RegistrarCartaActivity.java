@@ -183,9 +183,11 @@ public class RegistrarCartaActivity extends AppCompatActivity implements Locatio
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_IMAGE_PICK && resultCode == RESULT_OK) {
+        if (requestCode == REQUEST_GALLERY && resultCode == RESULT_OK) {
             // Obtener la URI de la imagen seleccionada desde la galería
             selectedImageUri = data.getData();
+
+            // Mostrar un Toast indicando que la imagen se agregó correctamente
             Toast.makeText(RegistrarCartaActivity.this, "Imagen agregada correctamente", Toast.LENGTH_SHORT).show();
 
             // Obtener la imagen en base64
@@ -195,6 +197,8 @@ public class RegistrarCartaActivity extends AppCompatActivity implements Locatio
             uploadImageToApi(imageBase64);
         }
     }
+
+
 
     private Uri getImageUri(Bitmap bitmap) {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();

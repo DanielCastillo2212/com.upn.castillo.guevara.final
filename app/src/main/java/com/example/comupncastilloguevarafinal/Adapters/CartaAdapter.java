@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -13,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.comupncastilloguevarafinal.Entities.Carta;
 import com.example.comupncastilloguevarafinal.ListaCartasActivity;
 import com.example.comupncastilloguevarafinal.R;
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -38,16 +40,9 @@ public class CartaAdapter extends RecyclerView.Adapter<CartaAdapter.CartaViewHol
         holder.tvNombre.setText(carta.getNombre());
         holder.tvPuntosAtaque.setText(String.valueOf(carta.getPuntosAtaque()));
         holder.tvPuntosDefensa.setText(String.valueOf(carta.getPuntosDefensa()));
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Redirigir a la actividad DetalleCartaActivity y pasar el ID de la carta y el nombre
-                Intent intent = new Intent(context, ListaCartasActivity.class);
-                intent.putExtra("cartaId", carta.getId());
-                intent.putExtra("nombreCarta", carta.getNombre());
-                context.startActivity(intent);
-            }
-        });
+
+        // Cargar la imagen usando Picasso
+        Picasso.get().load(carta.getUrlImagen()).into(holder.ivImagen);
     }
 
     @Override
@@ -59,12 +54,14 @@ public class CartaAdapter extends RecyclerView.Adapter<CartaAdapter.CartaViewHol
         private TextView tvNombre;
         private TextView tvPuntosAtaque;
         private TextView tvPuntosDefensa;
+        private ImageView ivImagen;
 
         public CartaViewHolder(@NonNull View itemView) {
             super(itemView);
             tvNombre = itemView.findViewById(R.id.tv_nombre_carta);
             tvPuntosAtaque = itemView.findViewById(R.id.tv_puntos_ataque_carta);
             tvPuntosDefensa = itemView.findViewById(R.id.tv_puntos_defensa_carta);
+            ivImagen = itemView.findViewById(R.id.iv_imagen_carta);
         }
     }
 }
