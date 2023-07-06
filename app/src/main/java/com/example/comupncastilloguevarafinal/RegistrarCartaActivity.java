@@ -7,11 +7,15 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -21,7 +25,20 @@ import android.widget.Toast;
 
 import com.example.comupncastilloguevarafinal.DB.AppDatabase;
 import com.example.comupncastilloguevarafinal.Entities.Carta;
+import com.example.comupncastilloguevarafinal.ImageUpload.ImageUploadResponse;
+import com.example.comupncastilloguevarafinal.ImageUpload.ImageUploadResquest;
 import com.example.comupncastilloguevarafinal.Services.CartaDao;
+import com.example.comupncastilloguevarafinal.Services.ImageUploadService;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RegistrarCartaActivity extends AppCompatActivity implements LocationListener {
     private EditText etNombre;
@@ -30,6 +47,7 @@ public class RegistrarCartaActivity extends AppCompatActivity implements Locatio
     private TextView tvLatitud;
     private TextView tvLongitud;
     private Button btnRegistrar;
+    private Button btnAgregarImagen;
 
     private CartaDao cartaDao;
     private long duelistaId;
@@ -38,6 +56,8 @@ public class RegistrarCartaActivity extends AppCompatActivity implements Locatio
     public Double Longitude;
 
     private LocationManager mLocationManager;
+
+    private static final int REQUEST_IMAGE_PICK = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +70,7 @@ public class RegistrarCartaActivity extends AppCompatActivity implements Locatio
         tvLatitud = findViewById(R.id.tv_latitud);
         tvLongitud = findViewById(R.id.tv_longitud);
         btnRegistrar = findViewById(R.id.btn_registrar);
+        btnAgregarImagen = findViewById(R.id.btn_agregarimagen);
 
         AppDatabase db = AppDatabase.getInstance(getApplicationContext());
         cartaDao = db.cartaDao();
@@ -89,6 +110,13 @@ public class RegistrarCartaActivity extends AppCompatActivity implements Locatio
                 registrarCarta();
             }
         });
+
+        btnAgregarImagen.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openImagePicker();
+            }
+        });
     }
 
     private void registrarCarta() {
@@ -121,6 +149,103 @@ public class RegistrarCartaActivity extends AppCompatActivity implements Locatio
                         tvLongitud.setText("");
                     }
                 });
+            }
+        });
+    }
+
+    private void openImagePicker() {
+        Log.d("RegistroMovimiento", "Abriendo selector de imágenes");
+        // Verificar si el permiso de almacenamiento está concedido
+        if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            // El permiso de almacenamiento está concedido, abrir la galería
+            Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            startActivityForResult(galleryIntent, REQUEST_IMAGE_PICK);
+        } else {
+            // Solicitar permiso de almacenamiento si no está concedido
+            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_IMAGE_PICK);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_GALLERY && resultCode == RESULT_OK) {
+            // Obtener la URI de la imagen seleccionada desde la galería
+            selectedImageUri = data.getData();
+            Toast.makeText(RegistrarCartaActivity.this, "Imagen agregada correctamente", Toast.LENGTH_SHORT).show();
+
+            // Obtener la imagen en base64
+            String imageBase64 = convertImageToBase64(selectedImageUri);
+
+            // Subir la imagen a la API
+            uploadImageToApi(imageBase64);
+        } else if (requestCode == REQUEST_CAMERA && resultCode == RESULT_OK) {
+            // Obtener la imagen capturada por la cámara
+            Bundle extras = data.getExtras();
+            if (extras != null) {
+                Bitmap imageBitmap = (Bitmap) extras.get("data");
+                selectedImageUri = getImageUri(imageBitmap);
+                Toast.makeText(RegistrarCartaActivity.this, "Imagen agregada correctamente", Toast.LENGTH_SHORT).show();
+
+                // Obtener la imagen en base64
+                String imageBase64 = convertImageToBase64(selectedImageUri);
+
+                // Subir la imagen a la API
+                uploadImageToApi(imageBase64);
+            }
+        }
+    }
+
+    private Uri getImageUri(Bitmap bitmap) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+        String path = MediaStore.Images.Media.insertImage(getContentResolver(), bitmap, "Title", null);
+        return Uri.parse(path);
+    }
+
+    private String convertImageToBase64(Uri imageUri) {
+        try {
+            InputStream inputStream = getContentResolver().openInputStream(imageUri);
+            byte[] imageBytes = new byte[inputStream.available()];
+            inputStream.read(imageBytes);
+            inputStream.close();
+            return Base64.encodeToString(imageBytes, Base64.DEFAULT);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private void uploadImageToApi(String base64Image) {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://demo-upn.bit2bittest.com/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        ImageUploadService imageUploadService = retrofit.create(ImageUploadService.class);
+
+        ImageUploadResquest request = new ImageUploadResquest(base64Image);
+
+        Call<ImageUploadResponse> call = imageUploadService.uploadImage(request);
+        call.enqueue(new Callback<ImageUploadResponse>() {
+            @Override
+            public void onResponse(Call<ImageUploadResponse> call, Response<ImageUploadResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ImageUploadResponse uploadResponse = response.body();
+                    String imageUrl = uploadResponse.getImageUrl();
+
+                    // Actualizar el campo urlImagen con la imageUrl
+                    etUrlImagen.setText("https://demo-upn.bit2bittest.com/" + imageUrl);
+                } else {
+                    // Mostrar mensaje de error en caso de respuesta no exitosa o cuerpo nulo
+                    Toast.makeText(RegistrarCartaActivity.this, "Error al cargar la imagen", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ImageUploadResponse> call, Throwable t) {
+                // Mostrar mensaje de error en caso de fallo en la llamada
+                Toast.makeText(RegistrarCartaActivity.this, "Error en la llamada al servidor", Toast.LENGTH_SHORT).show();
             }
         });
     }
