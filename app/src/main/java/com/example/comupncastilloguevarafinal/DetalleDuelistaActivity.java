@@ -12,6 +12,7 @@ public class DetalleDuelistaActivity extends AppCompatActivity {
     private TextView tvNombreDuelista;
     private Button btnRegistrarCarta;
     private Button btnVerCartas;
+    private Button btnVerMapa;
 
     private long duelistaId;
     private String duelistaNombre;
@@ -24,6 +25,7 @@ public class DetalleDuelistaActivity extends AppCompatActivity {
         tvNombreDuelista = findViewById(R.id.tv_nombre_duelista);
         btnRegistrarCarta = findViewById(R.id.btn_registrar_carta);
         btnVerCartas = findViewById(R.id.btn_ver_cartas);
+        btnVerMapa = findViewById(R.id.btn_ver_mapa);
 
         // Recuperar los datos del Intent
         Intent intent = getIntent();
@@ -49,6 +51,15 @@ public class DetalleDuelistaActivity extends AppCompatActivity {
                 // Redirigir a la actividad de ver cartas y pasar el ID del Duelista
                 Intent intent = new Intent(DetalleDuelistaActivity.this, ListaCartasActivity.class);
                 intent.putExtra("duelistaId", duelistaId);
+                startActivity(intent);
+            }
+        });
+
+        btnVerMapa.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Redirigir a la actividad del mapa
+                Intent intent = new Intent(DetalleDuelistaActivity.this, MapsActivity.class);
                 startActivity(intent);
             }
         });

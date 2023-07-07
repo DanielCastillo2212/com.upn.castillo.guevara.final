@@ -13,6 +13,8 @@ import android.graphics.Bitmap;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -29,12 +31,14 @@ import com.example.comupncastilloguevarafinal.DB.AppDatabase;
 import com.example.comupncastilloguevarafinal.Entities.Carta;
 import com.example.comupncastilloguevarafinal.ImageUpload.ImageUploadResponse;
 import com.example.comupncastilloguevarafinal.ImageUpload.ImageUploadResquest;
+import com.example.comupncastilloguevarafinal.Services.CartaApiService;
 import com.example.comupncastilloguevarafinal.Services.CartaDao;
 import com.example.comupncastilloguevarafinal.Services.ImageUploadService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -131,7 +135,67 @@ public class RegistrarCartaActivity extends AppCompatActivity implements Locatio
 
             }
         });
+        verificarConexionYActualizarDatos();
     }
+
+    private void verificarConexionYActualizarDatos() {
+        // Verificar la conexión a Internet
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+
+        if (networkInfo != null && networkInfo.isConnected()) {
+            // Si hay conexión a Internet, realizar la sincronización de datos
+            actualizarDatosDesdeApi();
+        } else {
+            // Si no hay conexión a Internet, mostrar un mensaje de error o tomar alguna acción apropiada
+            Toast.makeText(this, "No hay conexión a Internet", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void actualizarDatosDesdeApi() {
+        // Borrar todos los datos de la base de datos local
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                cartaDao.deleteAllCartas();
+            }
+        });
+
+        // Obtener los datos de la API MockAPI y guardarlos en la base de datos local
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://64a5ba5100c3559aa9c01d7a.mockapi.io/") // Reemplazar con la URL base de tu API MockAPI
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        CartaApiService apiService = retrofit.create(CartaApiService.class);
+        Call<List<Carta>> call = apiService.getCartas();
+        call.enqueue(new Callback<List<Carta>>() {
+            @Override
+            public void onResponse(Call<List<Carta>> call, Response<List<Carta>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<Carta> cartas = response.body();
+                    // Guardar las cartas en la base de datos local
+                    AsyncTask.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            cartaDao.insertCartas(cartas);
+                        }
+                    });
+                    Toast.makeText(RegistrarCartaActivity.this, "Datos actualizados desde la API", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(RegistrarCartaActivity.this, "Error al obtener datos de la API", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Carta>> call, Throwable t) {
+                Toast.makeText(RegistrarCartaActivity.this, "Error en la llamada a la API", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+
+
 
     private void registrarCarta() {
         String nombre = etNombre.getText().toString();
@@ -139,7 +203,6 @@ public class RegistrarCartaActivity extends AppCompatActivity implements Locatio
         int puntosDefensa = Integer.parseInt(etPuntosDefensa.getText().toString());
         double latitud = Double.parseDouble(tvLatitud.getText().toString());
         double longitud = Double.parseDouble(tvLongitud.getText().toString());
-
 
         if (nombre.isEmpty()) {
             Toast.makeText(this, "Ingrese un nombre de Carta", Toast.LENGTH_SHORT).show();
@@ -153,16 +216,17 @@ public class RegistrarCartaActivity extends AppCompatActivity implements Locatio
 
 
         final Carta carta = new Carta(nombre, puntosAtaque, puntosDefensa, urlImagen, latitud, longitud, duelistaId);
-        Log.d("URL", "URL de la imagen para pasar: " + urlImagen);
 
         AsyncTask.execute(new Runnable() {
             @Override
             public void run() {
+                // Insertar la carta en la base de datos local y obtener el ID generado
                 long cartaId = cartaDao.insertCarta(carta);
 
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        // Mostrar un mensaje de éxito
                         Toast.makeText(RegistrarCartaActivity.this, "Carta registrada con ID: " + cartaId, Toast.LENGTH_SHORT).show();
                         etNombre.setText("");
                         etPuntosAtaque.setText("");
@@ -170,13 +234,38 @@ public class RegistrarCartaActivity extends AppCompatActivity implements Locatio
                         tvLatitud.setText("");
                         tvLongitud.setText("");
 
-                        // Actualizar el campo urlImagen con la imageUrl
-                        //tvurlimagen.setText("https://demo-upn.bit2bittest.com/" + tvurlimagen.getText().toString());
+                        // Llamar al método createCarta() del servicio CartaApiService para subir la carta a la API
+                        Retrofit retrofit = new Retrofit.Builder()
+                                .baseUrl("https://64a5ba5100c3559aa9c01d7a.mockapi.io/") // Reemplazar con la URL base de tu API MockAPI
+                                .addConverterFactory(GsonConverterFactory.create())
+                                .build();
+
+                        CartaApiService apiService = retrofit.create(CartaApiService.class);
+                        Call<Carta> call = apiService.createCarta(carta);
+                        call.enqueue(new Callback<Carta>() {
+                            @Override
+                            public void onResponse(Call<Carta> call, Response<Carta> response) {
+                                if (response.isSuccessful() && response.body() != null) {
+                                    // Mostrar un mensaje de éxito
+                                    Toast.makeText(RegistrarCartaActivity.this, "Carta subida a la API correctamente", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    // Mostrar un mensaje de error
+                                    Toast.makeText(RegistrarCartaActivity.this, "Error al subir la carta a la API", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(Call<Carta> call, Throwable t) {
+                                // Mostrar un mensaje de error
+                                Toast.makeText(RegistrarCartaActivity.this, "Error en la llamada a la API", Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
                 });
             }
         });
     }
+
 
     private void openImagePicker() {
         Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);

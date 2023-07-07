@@ -66,6 +66,10 @@ public class DuelistaAdapter extends RecyclerView.Adapter<DuelistaAdapter.ViewHo
             tvNombre = itemView.findViewById(R.id.tv_nombre_duelista);
         }
     }
+    public void setDuelistas(List<Duelista> duelistas) {
+        this.duelistas = duelistas;
+        notifyDataSetChanged();
+    }
 }
 
 

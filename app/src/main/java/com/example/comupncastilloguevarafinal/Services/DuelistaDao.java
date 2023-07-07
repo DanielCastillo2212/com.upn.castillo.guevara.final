@@ -3,6 +3,7 @@ package com.example.comupncastilloguevarafinal.Services;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import com.example.comupncastilloguevarafinal.Entities.Duelista;
 
@@ -24,4 +25,8 @@ public interface DuelistaDao {
 
     @Insert
     void insertDuelistas(List<Duelista> duelistas);
+
+    @Update
+    void updateDuelista(Duelista duelista);
+
 }
